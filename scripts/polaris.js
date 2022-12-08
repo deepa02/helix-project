@@ -1,36 +1,68 @@
 export function decoratePolarisImage(element) {
     decoratePolarisImageTitle(element);
+ //   decoratePolarisTag(element);
 }
 
 function decoratePolarisImageTitle(element){
-    const polarisImageTag = '~polaris-title~';
+    const polarisImageTitle = '~polaris-title~';
     element.querySelectorAll('p').forEach((para) => {
-        if(polarisImageTag === para.innerHTML){
+        if(polarisImageTitle === para.innerHTML){
             console.log('found polaris title');
-            // get the assetid from the alt attribute of the nearest image tag above this html
+            // get the assetid from the alt attribute of the nearest image tag above this html tag
             const closestImg = para.parentElement.querySelector('img');
             if(closestImg !== null) {
                 const assetId = closestImg.getAttribute('alt')
                 if (assetId && testAssetId(assetId)) {
                     console.log('asset id found : ', assetId);
-                    //  fetchAssetMetadata(assetId).then(resp => {
-                    //    console.log(resp);
-                    //    var titleVal = parsePolarisMetadataResponse(resp,'title');
-                    //    para.innerHTML = titleVal;
-                    //  });
-                    var sampleJson = sampleResponse();
-                    var titleVal = parsePolarisMetadataResponse(sampleJson,'title');
-                    para.innerHTML = titleVal;
+                     fetchAssetMetadata(assetId).then(resp => {
+                       console.log(resp);
+                       var jsonStr = JSON.stringify(resp);
+                       var jsonObj = JSON.parse(jsonStr);
+                       var titleVal = parsePolarisTitleResponse(jsonObj);
+                       para.innerHTML = titleVal;
+                     });
+                  //  var sampleJson = sampleResponse();
+                  //   var titleVal = parsePolarisMetadataResponse(sampleJson,'title');
+                  //   para.innerHTML = titleVal;
                 }
             }
         }
     });
 }
 
+function decoratePolarisTag(element){
+    const polarisTag = '~polaris-tag~';
+    element.querySelectorAll('p').forEach((para) => {
+        if(polarisTag === para.innerHTML){
+            console.log('found polaris tag');
+            // get the assetid from the alt attribute of the nearest image tag above this html tag
+            const closestImg = para.parentElement.querySelector('img');
+            if(closestImg !== null) {
+                const assetId = closestImg.getAttribute('alt')
+                if (assetId && testAssetId(assetId)) {
+                    console.log('asset id found : ', assetId);
+                    fetchAssetMetadata(assetId).then(resp => {
+                        console.log(resp);
+                        var jsonStr = JSON.stringify(resp);
+                        var jsonObj = JSON.parse(jsonStr);
+                        var titleVal = parsePolarisTitleResponse(jsonObj);
+                        para.innerHTML = titleVal;
+                    });
+                    //  var sampleJson = sampleResponse();
+                    //   var titleVal = parsePolarisMetadataResponse(sampleJson,'title');
+                    //   para.innerHTML = titleVal;
+                }
+            }
+        }
+    });
+}
+
+
 async function fetchAssetMetadata(assetId){
     const polarisMetadataApiEndPoint = 'https://polarisnew-dev-va7.stage.cloud.adobe.io/adobe/approvedassets/metadata/urn:aaid:aem:';
     const headers = {
         'x-sky-polaris-release': 'cm-p47604-e107386',
+        'mode': 'no-cors'
     };
     var url = polarisMetadataApiEndPoint + assetId;
     const response = await fetch(url, { headers });
@@ -38,7 +70,17 @@ async function fetchAssetMetadata(assetId){
     return resp;
 }
 
-function parsePolarisMetadataResponse(jsonOutput, attr) {
+function parsePolarisTitleResponse(jsonOutput) {
+    if (jsonOutput) {
+        var embeddedEle, attrVal;
+        if (embeddedEle = jsonOutput['embedded']) {
+            attrVal = embeddedEle['dc:title']
+        }
+    }
+    return attrVal;
+}
+
+function parsePolarisTag(jsonOutput) {
     if (jsonOutput) {
         var jsonStr = JSON.stringify(jsonOutput);
         var jsonObj = JSON.parse(jsonOutput);
